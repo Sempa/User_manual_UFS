@@ -1,0 +1,72 @@
+---
+title: "Interpreting and presenting statistical analyses"
+author: "Joseph"
+date: "9/10/2020"
+output:
+  html_document:
+    fig_caption: yes
+    toc: true
+  word_document:
+    toc: true
+  pdf_document:
+    fig_caption: yes
+    toc: true
+  html_notebook:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+if (Sys.info()["login"] == "sempajb") {
+  knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
+ } else if (Sys.info()["login"] == "joseph") {
+  knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
+ } 
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(fig.pos = 'H')
+knitr::opts_chunk$set(results = 'asis')
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+library(tidyverse)
+library(magrittr)
+library(knitr)
+library(kableExtra)
+library(tinytex)
+```
+
+This document indicates how the results we send to the researcher are displayed and interpreted. Guidance is also given regarding how to construct tables for reporting purposes. Firstly, the basic description of categorical and numerical variables will be discussed, thereafter comparisons/associations between two sets of variables.
+
+**<Basic description of results>**
+**Categorical variables:**
+In the output of a frequency table below Q6 indicates the highest level of education, a question for which the respondent can choose only one answer option. For each category that occurred, the number who had that response (Frequency) is indicated, and what percentage that is of those who had a response. Out of 56 participants in the study, 55 provided an answer to this question (see last value in the column Cumulative frequency). Frequency Missing = 1 indicates that only one person did not provide an answer to this question.
+
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+Q6 <- seq(1:7) # & categories of levels of education
+Freq <- c(2, 6, 17, 20, 4, 2, 4) #Q6-respective frequencies
+data_set1 <- data.frame(Q6 = Q6, frequency = Freq)
+data_set1 <- data_set1%>%
+  mutate(percent = round((frequency/(sum(frequency)))*100,2), cumulative_Freq = cumsum(frequency), 
+         cumulative_pct = cumsum(percent))
+kbl(data_set1)
+dt <- data_set1
+dt %>%
+  kbl()%>%
+  kable_styling()
+dt %>%
+  kbl()%>%
+  kable_paper('hover', full_width = F)
+
+dt %>%
+  kbl(caption = "Frequency table for Q6")%>%
+  kable_paper('hover', full_width = F) %>%
+  # kable_material(c("striped", "hover")) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+```
+Of those who answered, 36.4% completed grade 12 (Q6=4) and only 3.6% had no qualification (Q6=1). All percentages should be rounded to one decimal point.
+The cumulative frequency and cumulative percentage are usually not used except when one intends to group responses into categories (see next section about categorization of variables).
+When creating a table to report the results, you need to indicate what the codes stand for:
+```{r fig1, cache = F, echo=FALSE, fig.height = 4, fig.align = 'left', results='asis', message=FALSE, warning=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
