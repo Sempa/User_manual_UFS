@@ -41,32 +41,53 @@ This document indicates how the results we send to the researcher are displayed 
 In the output of a frequency table below Q6 indicates the highest level of education, a question for which the respondent can choose only one answer option. For each category that occurred, the number who had that response (Frequency) is indicated, and what percentage that is of those who had a response. Out of 56 participants in the study, 55 provided an answer to this question (see last value in the column Cumulative frequency). Frequency Missing = 1 indicates that only one person did not provide an answer to this question.
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
-Q6 <- seq(1:7) # & categories of levels of education
-Freq <- c(2, 6, 17, 20, 4, 2, 4) #Q6-respective frequencies
-data_set1 <- data.frame(Q6 = Q6, frequency = Freq)
-data_set1 <- data_set1%>%
-  mutate(percent = round((frequency/(sum(frequency)))*100,2), cumulative_Freq = cumsum(frequency), 
-         cumulative_pct = cumsum(percent))
-kbl(data_set1)
-dt <- data_set1
-dt %>%
-  kbl()%>%
-  kable_styling()
-dt %>%
-  kbl()%>%
-  kable_paper('hover', full_width = F)
+data_set1 <- read_csv("C:/Users/Joseph/Documents/GitHub/User_manual_UFS/data/data_set_latex.csv")
+# Q6 <- seq(1:7) # & categories of levels of education
+# Freq <- c(2, 6, 17, 20, 4, 2, 4) #Q6-respective frequencies
+# data_set1 <- data.frame(Q6 = Q6, frequency = Freq)
+age.cat <- function(x, lower = 0, upper, by = 10,
+                   sep = "-", above.char = "+") {
 
-dt %>%
-  kbl(caption = "Frequency table for Q6")%>%
+ labs <- c(paste(seq(lower, upper - by, by = by),
+                 seq(lower + by - 1, upper - 1, by = by),
+                 sep = sep),
+           paste(upper, above.char, sep = ""))
+
+ cut(floor(x), breaks = c(seq(lower, upper, by = by), Inf),
+     right = FALSE, labels = labs)
+}
+dt1 <- data_set1%>%
+  mutate(agecat = age.cat(age_months, lower = 0, upper = 120, by = 24))
+levels(dt1$agecat) = c(1, 2, 3, 4, 5, 6)
+dt1 <- dt1 %>%
+  group_by(agecat) %>%
+  summarise(freq = n()) %>%
+  mutate(percent = round((freq/(sum(freq)))*100,1), cumulative_Freq = cumsum(freq), 
+         cumulative_pct = cumsum(percent))
+dt1 %>%
+  kbl(caption = "Frequency table for age cat")%>%
   kable_paper('hover', full_width = F) %>%
   # kable_material(c("striped", "hover")) %>%
   kable_classic(full_width = F, html_font = "Arial")
+
 ```
 Of those who answered, 36.4% completed grade 12 (Q6=4) and only 3.6% had no qualification (Q6=1). All percentages should be rounded to one decimal point.
 The cumulative frequency and cumulative percentage are usually not used except when one intends to group responses into categories (see next section about categorization of variables).
 When creating a table to report the results, you need to indicate what the codes stand for:
-```{r fig1, cache = F, echo=FALSE, fig.height = 4, fig.align = 'left', results='asis', message=FALSE, warning=FALSE}
-plot(pressure)
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+dt2 <- data_set1%>%
+  mutate(agecat = age.cat(age_months, lower = 0, upper = 120, by = 24)) %>%
+  group_by(agecat) %>%
+  summarise(freq = n()) %>%
+  mutate(percent = round((freq/(sum(freq)))*100,1), cumulative_Freq = cumsum(freq), 
+         cumulative_pct = cumsum(percent))
+dt2 %>%
+  kbl(caption = "Frequency table for age cat")%>%
+  kable_paper('hover', full_width = F) %>%
+  # kable_material(c("striped", "hover")) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
