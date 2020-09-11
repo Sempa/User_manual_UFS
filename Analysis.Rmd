@@ -169,9 +169,9 @@ In the 2x2 contingency table below Sleep quality (Good, Poor) is given in the co
 
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
-dt6 <- CrossTable(data_set1$gender, data_set1$q1, prop.r=TRUE, prop.c=F,
+CrossTable(data_set1$gender, data_set1$q1, prop.r=TRUE, prop.c=F,
            prop.t=F, prop.chisq=F, chisq = F, fisher=FALSE, mcnemar=FALSE,
            resid=FALSE, sresid=FALSE, asresid=FALSE, format = 'SAS',
            missing.include=FALSE, dnn = c('gender', 'personal history'))
-dt6
+
 ```
