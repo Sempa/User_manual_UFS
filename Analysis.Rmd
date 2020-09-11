@@ -174,4 +174,13 @@ CrossTable(data_set1$gender, data_set1$q1, prop.r=TRUE, prop.c=F,
            resid=FALSE, sresid=FALSE, asresid=FALSE, format = 'SAS',
            missing.include=FALSE, dnn = c('gender', 'personal history'))
 
+library(flextable)
+library(dplyr)
+library(magrittr)
+
+table1 = ftable(tabledata,col.vars=c(3,1))
+
+data.frame(table1) %>% spread(species, Freq) %>% 
+     regulartable %>% merge_v(j = ~homeworld) %>% autofit()
+
 ```
