@@ -16,11 +16,11 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-if (Sys.info()["login"] == "sempajb") {
-  knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
- } else if (Sys.info()["login"] == "joseph") {
-  knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
- } 
+# if (Sys.info()["login"] == "sempajb") {
+#   knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
+#  } else if (Sys.info()["login"] == "joseph") {
+#   knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
+#  } 
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache=TRUE)
 knitr::opts_chunk$set(fig.pos = 'H')
@@ -165,22 +165,172 @@ dt5 %>%
 
 ***Contingency tables***
 
-In the 2x2 contingency table below Sleep quality (Good, Poor) is given in the columns, Accommodation (on, off-campus) in the rows. Of the 282 on-campus students, 77.7% (219 students) had poor sleep quality compared to 75.4% (478) of off-campus students. This table thus shows row percentages. Remember to round percentages to one decimal.
+In the 2x2 contingency table 6 for frequency and row totals and table 7 for row percentages,  below Serum IgE test results (1 = Positive, 2 = Negative) is given in the columns, sex of the respondent (f = Female, m = Male) in the rows. Of the 14 females in the study, 64.3% (9 females) had a positive Serum IgE test compared to 52.0% (13 males) of males. This table thus shows row percentages. Remember to round percentages to one decimal.
 
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
-CrossTable(data_set1$gender, data_set1$q1, prop.r=TRUE, prop.c=F,
-           prop.t=F, prop.chisq=F, chisq = F, fisher=FALSE, mcnemar=FALSE,
-           resid=FALSE, sresid=FALSE, asresid=FALSE, format = 'SAS',
-           missing.include=FALSE, dnn = c('gender', 'personal history'))
+dt7 <- table(data_set1$gender, data_set1$`serum IgE`)
+dt8 <- addmargins(dt7)
+dt8 %>%
+  kbl(caption = "Table 6: Table showing sex of respondent by serum IgE")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
 
-library(flextable)
-library(dplyr)
-library(magrittr)
-
-table1 = ftable(tabledata,col.vars=c(3,1))
-
-data.frame(table1) %>% spread(species, Freq) %>% 
-     regulartable %>% merge_v(j = ~homeworld) %>% autofit()
+dt9 <- round(prop.table(dt7, margin = 1), 3)*100
+dt9 %>%
+  kbl(caption = "Table 7: Row percentages for sex of respondent by serum IgE")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
 
 ```
+
+In the table below the column percentages, from table 6 above, are given.
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+dt7 <- table(data_set1$gender, data_set1$`serum IgE`)
+dt11 <- round(prop.table(dt7, margin = 2), 3)* 100
+dt11 %>%
+  kbl(caption = "Table 8: column percentages for sex of respondent by serum IgE")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+```
+
+Whether the row or column percentage is used will not affect the results of the statistical test
+for association i.e. Chi-square test or Fisher’s Exact test. The Chi-Square test is commonly used
+to compare two categorical variables in a 2 by 2 table. it is based on the null hypothesis that the two variable are independent (i.e. that knowing one variable doesn't enable us predict second variable). There was no
+evidence (p-value = 0.685, see table 9) to suggest that there is a difference in gender with regards to serum IgE test results in the study (i.e., A patient's gender is independent or has no bearing on serum IgE results). The p-value is larger than 0.05 therefore there was no statistically significant difference.
+
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+x_sq <- chisq.test(data_set1$gender, data_set1$`serum IgE`)
+fe_test <- fisher.test(data_set1$gender, data_set1$`serum IgE`)
+comparison_table <- data.frame(statistic = c("Chi-square", "Fisher’s Exact"), 
+                               DF = c(x_sq$parameter[[1]], NA), 
+                               Value = c(x_sq$statistic[[1]], fe_test$estimate[[1]]), 
+                               `P value` = c(x_sq$p.value, fe_test$p.value))
+comparison_table %>%
+  kbl(caption = "Table 9: Statistical signifiance tests for sex of respondent by serum IgE ")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+```
+The Chi-square test is however not used if the expected counts/frequency (see table 10) < 5 andin such a case, we use the Fisher’s exact test. . However, in our example, the expected counts are all > 5 and so we can draw our conclusions about the gender vs serum IgE relationship using chi-square. 
+
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+expected_freq <- data.frame((chisq.test(data_set1$gender, data_set1$`serum IgE`))$expected)
+expected_freq %>%
+  kbl(caption = "Table 10: Expected cell counts for sex of respondent by serum IgE ")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+```
+
+The results regarding the association between Accommodation and Sleep quality can be
+represented as follows in a table with other variables as well.
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+final_table_outlook <- data.frame(
+  Variable = c("Sex of respondent (Female)", "", ""),
+  `Positive serum IgE` = c(paste0(dt7[1, 1], " (", dt9[1, 1], ")", collapse = ""), NA, NA),
+  `Negative serum IgE` = c(paste0(dt7[1, 2], " (", dt9[1, 2], ")", collapse = ""), NA, NA),
+  P_value = c(round(x_sq$p.value, 3), NA, NA)
+)
+final_table_outlook %>%
+  kbl(caption = "Table 11: Results table") %>%
+  kable_paper("hover", full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+```
+
+**Numerical variables**
+***Numerical variables compared in different categories***
+If the numerical variable has a skew distribution results will be summarised and compared as below
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+age_by_gender <- data_set1 %>%
+  group_by(gender) %>%
+  summarise(
+    N = n(),
+    Median = median(age_months),
+    `Lower Quartile` = round(quantile(age_months, .25), 2),
+    `Upper Quartile` = round(quantile(age_months, .75), 2),
+    Minimum = min(age_months),
+    Maximum = max(age_months)
+  ) 
+
+age_by_gender %>%
+  kbl(caption = "Table 12: Age in months by gender distribution") %>%
+  kable_paper("hover", full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+```
+We noted in table 4 that age is not normally distributed and for this reason we cannot compare the means but medians between groups. For this, we use the Kruskal-Wallis Test. 
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis', warning=F}
+compare_median <- kruskal.test(list(data_set1$gender, data_set1$age_months))
+
+comparison_table <- data.frame(Statistic = "Kruskal-Wallis Test", 
+                               `Chi-Square` = c(compare_median$statistic[[1]]), 
+                               DF = c(compare_median$parameter[[1]]), 
+                               `P value` = c(compare_median$p.value))
+comparison_table %>%
+  kbl(caption = "Table 13: Statistical signifiance tests for sex of respondent by age in months ")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+W_test <- wilcox.test(data_set1$age_months[data_set1$gender=='f'], data_set1$age_months[data_set1$gender=='m'], alternative = "two.sided", exact = FALSE, correct = FALSE, conf.int = T, conf.level = .95)
+
+
+```
+
+Computed was the p-value (P < 0.0001) from the Kruskal-Wallis test. Also, the 95% Confidence
+interval for the difference in median age between the two gender groups (Male = m and
+Female = f) was calculated as [`r round(W_test$conf.int[[1]],2)`; `r round(W_test$conf.int[[2]],2)`].
+These results can also be represented with the results of other numerical variables in a table
+as follows.
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis', warning=F}
+compare_median <- kruskal.test(list(data_set1$gender, data_set1$age_months))
+comparison_table <- data.frame(variable = c("Age in months"), 
+                               `Males(n=25)` = paste0(round(age_by_gender[[1,3]],2), ' (', round(age_by_gender[[1,4]],2),', ', round(age_by_gender[[1,5]],2), ')', collapse = ''), 
+                               `Females(n=14)` = paste0(round(age_by_gender[[2,3]],2), ' (', round(age_by_gender[[2,4]],2),', ', round(age_by_gender[[2,5]],2), ')', collapse = ''), 
+                               `95% CI for diff. in medians-wilcox` = paste0(round(W_test$conf.int[[1]],2), ', ', round(W_test$conf.int[[2]],2), collapse = ''),
+                               `P value-Kruskal` = c(round(compare_median$p.value, 2)))
+comparison_table %>%
+  kbl(caption = "Table 14: The relatioship between sex of respondent by age in months ")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+```
+
+If the numerical variable has a symmetric distribution, results will be summarised and
+compared as below.
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
+age_by_gender_2 <- data_set1 %>%
+  group_by(gender) %>%
+  summarise(
+    N = n(),
+    Average = round(mean(age_months), 2),
+    `Std. deviation` = round(sd(age_months), 2),
+    Minimum = min(age_months),
+    Maximum = max(age_months)
+  ) 
+
+age_by_gender_2 %>%
+  kbl(caption = "Table 15: Age in months by gender distribution, if Age in month was symmetric") %>%
+  kable_paper("hover", full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+compare_vars <- var.test(data_set1$age_months~as.numeric(as.factor(data_set1$gender)), alternative = "two.sided", var.equal = TRUE)
+
+```
+
+Since there is no evidence (F Value = `r round(compare_vars$statistic[[1]], 2)`, p-value = `r round(compare_vars$p.value, 4)`) to suggest that the variances between the two genders were different, the pooled variance estimate method was used. The p-value (from the two sample t-test) and 95% confidence interval was calculated. These results can also be represented with other numerical variables in a table as follows.
+```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis', warning=F}
+compare_means <- t.test(data_set1$age_months~as.numeric(as.factor(data_set1$gender)))
+comparison_table <- data.frame(variable = c("Age in months"), 
+                               `Males(n=25)` = paste0(round(age_by_gender_2[[1,3]],2), ' (', round(age_by_gender_2[[1,4]],2),', ', round(age_by_gender_2[[1,5]], 2), ')', collapse = ''), 
+                               `Females(n=14)` = paste0(round(age_by_gender_2[[2,3]],2), ' (', round(age_by_gender_2[[2,4]], 2),', ', round(age_by_gender_2[[2,5]],2), ')', collapse = ''), 
+                               `95% CI for diff. in means` = paste0(round(compare_means$conf.int[[1]],2), ', ', round(compare_means$conf.int[[2]],2), collapse = ''),
+                               `P value` = c(round(compare_means$p.value, 4)))
+comparison_table %>%
+  kbl(caption = "Table 16: The relationship sex of respondent by age in months (for symmetric age) ")%>%
+  kable_paper('hover', full_width = F) %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+```
+
