@@ -1,6 +1,6 @@
 ---
 title: "Interpreting and presenting statistical analyses"
-author: "Joseph"
+author: "Joseph B. Sempa"
 date: "9/10/2020"
 output:
   html_document:
@@ -16,11 +16,6 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# if (Sys.info()["login"] == "sempajb") {
-#   knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
-#  } else if (Sys.info()["login"] == "joseph") {
-#   knitr::opts_knit$set(root.dir = "~/GitHub/User_manual_UFS")
-#  } 
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache=TRUE)
 knitr::opts_chunk$set(fig.pos = 'H')
@@ -35,129 +30,125 @@ library(tinytex)
 library(gmodels)
 ```
 
-This document indicates how the results we send to the researcher are displayed 
-and interpreted. Guidance is also given regarding how to construct tables for 
-reporting purposes. Firstly, the basic description of categorical and numerical 
-variables will be discussed, thereafter comparisons/associations between two 
-sets of variables.
+This document indicates how the results we send to the researcher are displayed and interpreted. Guidance is also given regarding how to construct tables for reporting purposes. Firstly, the basic description of categorical and numerical variables will be discussed, thereafter comparisons/associations between two sets of variables.
 
-**<Basic description of results>**
+**Basic description of results**
+
 **Categorical variables:**
-In the output of a frequency table below *agecat* indicates the age category of 
-participants in the study --- this variable was originally collected as a 
-discrete variable but categorized here. For each category, the number who belong 
-to a specific category *freq* is indicated, and what percentage *percent* that 
-is of those who had a response. All the 39 participants in the study provided 
-an answer to this question (see last value in the column Cumulative frequency) 
-and therefore no missing were recorded in this study
+
+In the output of a frequency table below *agecat* indicates the age category of participants in the study --- this variable was originally collected as a numerical variable but we have categorized it here for purposes of explanation. For each category, the number who belong to a specific category *freq* is indicated, and what percentage that is of those who had a response. All the 39 participants in the study provided an answer to this question (see last value in the column for cumulative frequency) and therefore no missing were recorded in this study
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 data_set1 <- read_csv("data/data_set_latex.csv")
 age.cat <- function(x, lower = 0, upper, by = 10,
-                   sep = "-", above.char = "+") {
+                    sep = "-", above.char = "+") {
+  labs <- c(
+    paste(seq(lower, upper - by, by = by),
+      seq(lower + by - 1, upper - 1, by = by),
+      sep = sep
+    ),
+    paste(upper, above.char, sep = "")
+  )
 
- labs <- c(paste(seq(lower, upper - by, by = by),
-                 seq(lower + by - 1, upper - 1, by = by),
-                 sep = sep),
-           paste(upper, above.char, sep = ""))
-
- cut(floor(x), breaks = c(seq(lower, upper, by = by), Inf),
-     right = FALSE, labels = labs)
+  cut(floor(x),
+    breaks = c(seq(lower, upper, by = by), Inf),
+    right = FALSE, labels = labs
+  )
 }
-dt1 <- data_set1%>%
+dt1 <- data_set1 %>%
   mutate(agecat = age.cat(age_months, lower = 0, upper = 120, by = 24))
-levels(dt1$agecat) = c(1, 2, 3, 4, 5, 6)
+levels(dt1$agecat) <- c(1, 2, 3, 4, 5, 6)
 dt1 <- dt1 %>%
   group_by(agecat) %>%
   summarise(freq = n()) %>%
-  mutate(percent = round((freq/(sum(freq)))*100,1), cumulative_Freq = cumsum(freq), 
-         cumulative_pct = cumsum(percent))
+  mutate(
+    percentage = round((freq / (sum(freq))) * 100, 1), `cumulative frequency` = cumsum(freq),
+    `cumulative percentage` = cumsum(percentage)
+  )
 dt1 %>%
-  kbl(caption = "Table 1: Frequency table for agecat")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 1: Frequency table for agecat") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
-Of those who answered, 64.1% were $\le$ 23 months old (agecat=1) and only 5.1% 
-were $\ge$ 120 months (age_cat=6). All percentages should be rounded to one 
-decimal point.
-The cumulative frequency and cumulative percentage are usually not used except 
-when one intends to group responses into categories (see next section about 
-categorization of variables).
-When creating a table to report the results, you need to indicate what the codes 
-stand for:
+Majority, 64.1% were $\le$ 23 months (agecat = 1) and only 5.1% were $\ge$ 120 months (age_cat = 6). All percentages should be rounded to one decimal point. The cumulative frequency and cumulative percentage are usually not used except when one intends to group responses into categories.
+
+When creating a table to report the results, you need to indicate what the codes stand for:
+
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
-dt2 <- data_set1%>%
+dt2 <- data_set1 %>%
   mutate(agecat = age.cat(age_months, lower = 0, upper = 120, by = 24)) %>%
   group_by(agecat) %>%
   summarise(n = n()) %>%
-  mutate(percent = round((n/(sum(n)))*100,1))
+  mutate(percentage = round((n / (sum(n))) * 100, 1))
 dt2 %>%
-  kbl(caption = paste0("Table 2: Frequency table for age at different categrogirs ", "(n = ", length(data_set1$age_months),')', collapse = ' '))%>%
-  kable_paper('hover', full_width = T) %>%
+  kbl(caption = paste0("Table 2: Frequency table for age at different categories", "(n = ", length(data_set1$age_months), ")", collapse = " ")) %>%
+  kable_paper("hover", full_width = T) %>%
   # kable_material(c("striped", "hover")) %>%
   kable_classic(full_width = T, html_font = "Arial")
 
 ```
-For Table 2 above, you can have a footnote regarding what the option other was. 
-The information of various categorical variables can be reported in one table, 
-with a more generic title, and after each heading (the variable name) an 
-indication of the total number of responses for that variable (n=39).
 
-The results of sex of the respondents (f = Female, m = Male) below, can be 
-reported in a sentence and without creating a table in the report i.e. 64.1% of 
-the participants in the study were males and 35.9% were females.
+The information of various categorical variables can be reported in one table, with a more generic title, and, at the end of each heading, an indication of the total number of responses for that variable (n = 39).
+
+The results of sex of the respondents (f = Female, m = Male) below, can be reported in a sentence and without creating a table in the report i.e. 64.1% of the participants in the study were males and 35.9% were females.
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
-dt3 <- data_set1%>%
+dt3 <- data_set1 %>%
   group_by(gender) %>%
   summarise(freq = n()) %>%
-  mutate(percent = round((freq/(sum(freq)))*100,1), cumulative_Freq = cumsum(freq), 
-         cumulative_pct = cumsum(percent))
+  mutate(
+    percentage = round((freq / (sum(freq))) * 100, 1), `cumulative frequency` = cumsum(freq),
+    `cumulative percentage` = cumsum(percentage)
+  )
 dt3 %>%
-  kbl(caption = "Table 3: Frequency table for sex of the respondents")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 3: Frequency table for sex of the respondents") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
 
 **Numerical variables:**
+
 The distribution of any numerical variable (age in months) can be summarised as follows:
+
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
-dt4 <- data_set1%>%#as.data.frame(summary(data_set1$age_months))
-  summarise(N = n(), Average = mean(age_months), standard_dev = sd(age_months), Median_val = median(age_months),
-            Lower_Qu = quantile(age_months, .25), Upper_Qu = quantile(age_months, .75),
-            Min_val = min(age_months), Max_val = max(age_months))
-Mean_val <- round(mean(data_set1$age_months),1)
+dt4 <- data_set1 %>% # as.data.frame(summary(data_set1$age_months))
+  summarise(
+    N = n(), Average = round(mean(age_months), 2), `standard devaition` = round(sd(age_months), 2), `median value` = median(age_months),
+    `lower quartile` = quantile(age_months, .25), `upper quartile` = quantile(age_months, .75),
+    `minimum value` = min(age_months), `maximum value` = max(age_months)
+  )
+Mean_val <- round(mean(data_set1$age_months), 1)
 SD_val <- round(sd(data_set1$age_months), 2)
-Median_val = round(median(data_set1$age_months), 1)
-Lower_Qu = round(quantile(data_set1$age_months, .25), 2)
-Upper_Qu = round(quantile(data_set1$age_months, .75), 2)
+Median_val <- round(median(data_set1$age_months), 1)
+Lower_Qu <- round(quantile(data_set1$age_months, .25), 2)
+Upper_Qu <- round(quantile(data_set1$age_months, .75), 2)
 dt4 %>%
-  kbl(caption = "Table 4: Frequency table for sex of the respondents")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 4: Frequency table for sex of the respondents") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
-where *N* total number of observations analyzed, *Median_val* is the median value of the distribution of age in months, *Min_val* is the minimum value, *Lower_Qu* is the lower quartile or 25th percentile, *Upper_Qu*  the upper quartile or 75th percentile. We note that age here is skewed (i.e. mean is quantitatively different from Median) and therefore we report about its distribution using the median and inter-quartile range, i.e. `r Median_val` months (IQR:`r Lower_Qu`, `r Upper_Qu`). Otherwise, if age was no skewed (i.e. mean is quantitatively similar or close to median) then we report the mean and standard deviation, i.e. `r Mean_val`months (SD:`r SD_val`).
 
-The minimum and maximum are also shown, please check whether these extreme values are plausible and inclusion criteria are met.
-
+where *N* is total number of observations analyzed, *Median_val* is the median value of the distribution of age in months, *Min_val* is the minimum value, *Lower_Qu* is the lower quartile or 25th percentile, *Upper_Qu* is the upper quartile or 75th percentile. We note that age is skewed (i.e. mean is quantitatively different from median) and therefore we report about its distribution using the median and inter-quartile range, i.e. `r Median_val` months (IQR: `r Lower_Qu`, `r Upper_Qu`). Otherwise, if age was not skewed then we report the mean and standard deviation, i.e. `r Mean_val` months (SD: `r SD_val`). You don't have to include, in the results, table 4.
+The minimum and maximum are also shown, please check whether these extreme values are plausible and inclusion criteria are met. 
 The frequency table of a numerical variable such as age can also be obtained:
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 dt5 <- data_set1 %>%
   group_by(age_months) %>%
   summarise(freq = n()) %>%
-  mutate(percent = round((freq/(sum(freq)))*100,2), cumulative_Freq = cumsum(freq), 
-         cumulative_pct = round(cumsum(percent), 1))
+  mutate(
+    percentage = round((freq / (sum(freq))) * 100, 2), `cumulative frequency` = cumsum(freq),
+    `cumulative percentage` = round(cumsum(percentage), 1)
+  )
 dt5 %>%
-  kbl(caption = "Table 5: Frequency table for agecat")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 5: Frequency table for agecat") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
-
 
 **Comparisons (Associations):**
 
@@ -165,73 +156,69 @@ dt5 %>%
 
 ***Contingency tables***
 
-In the 2x2 contingency table 6 for frequency and row totals and table 7 for row percentages,  below Serum IgE test results (1 = Positive, 2 = Negative) is given in the columns, sex of the respondent (f = Female, m = Male) in the rows. Of the 14 females in the study, 64.3% (9 females) had a positive Serum IgE test compared to 52.0% (13 males) of males. This table thus shows row percentages. Remember to round percentages to one decimal.
-
+In the 2x2 contingency table 6 (cell totals) and table 7 (row percentages) below, Serum IgE test results (1 = Positive, 2 = Negative) is given in the columns, sex of the respondent (f = Female, m = Male) in the rows. 9 out of 14 females in the study (64.3%) had a positive Serum IgE test compared to 13 out of 25 males (52.0%). You can combine both table 6 and 7 into one table by including, in each cell, the cell total from table 6 and the corresponding total in table 7. For example, if you want to use row totals, you can put 9 (64.3%) in the cell corresponding to females with a positive serum IgE or if you want to use column totals, you can put 9 (40.9%) in the cell corresponding to positive serum IgE patients who are females. Remember to round percentages to one decimal.
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 dt7 <- table(data_set1$gender, data_set1$`serum IgE`)
 dt8 <- addmargins(dt7)
 dt8 %>%
-  kbl(caption = "Table 6: Table showing sex of respondent by serum IgE")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 6: Table showing sex of respondent by serum IgE") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
-dt9 <- round(prop.table(dt7, margin = 1), 3)*100
+dt9 <- round(prop.table(dt7, margin = 1), 3) * 100
 dt9 %>%
-  kbl(caption = "Table 7: Row percentages for sex of respondent by serum IgE")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 7: Row percentages for sex of respondent by serum IgE") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
-
 In the table below the column percentages, from table 6 above, are given.
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 dt7 <- table(data_set1$gender, data_set1$`serum IgE`)
-dt11 <- round(prop.table(dt7, margin = 2), 3)* 100
+dt11 <- round(prop.table(dt7, margin = 2), 3) * 100
 dt11 %>%
-  kbl(caption = "Table 8: column percentages for sex of respondent by serum IgE")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 8: column percentages for sex of respondent by serum IgE") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
 
-Whether the row or column percentage is used will not affect the results of the statistical test
-for association i.e. Chi-square test or Fisher’s Exact test. The Chi-Square test is commonly used
-to compare two categorical variables in a 2 by 2 table. it is based on the null hypothesis that the two variable are independent (i.e. that knowing one variable doesn't enable us predict second variable). There was no
-evidence (p-value = 0.685, see table 9) to suggest that there is a difference in gender with regards to serum IgE test results in the study (i.e., A patient's gender is independent or has no bearing on serum IgE results). The p-value is larger than 0.05 therefore there was no statistically significant difference.
+Whether the row or column percentage is used will not affect the results of the statistical test for association i.e. Chi-square test or Fisher’s Exact test. The Chi-Square test is commonly used to compare two categorical variables in a 2 by 2 table. It is based on the null hypothesis that the two variable are independent (i.e. you can't predict the second variable if you know the results of the first one). From table 9, there was no evidence (p-value = 0.685) to suggest that there is a gender-effect on the serum IgE test results in the study (i.e., A patient's gender is independent or has no bearing on serum IgE results). Alternatively, you can report that the p-value is larger than 0.05 therefore there was no statistically significant difference.
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 x_sq <- chisq.test(data_set1$gender, data_set1$`serum IgE`)
 fe_test <- fisher.test(data_set1$gender, data_set1$`serum IgE`)
-comparison_table <- data.frame(statistic = c("Chi-square", "Fisher’s Exact"), 
-                               DF = c(x_sq$parameter[[1]], NA), 
-                               Value = c(x_sq$statistic[[1]], fe_test$estimate[[1]]), 
-                               `P value` = c(x_sq$p.value, fe_test$p.value))
+comparison_table <- data.frame(
+  statistic = c("Chi-square", "Fisher’s Exact"),
+  DF = c(x_sq$parameter[[1]], ''),
+  Value = c(round(x_sq$statistic[[1]], 3), round(fe_test$estimate[[1]], 3)),
+  `P value` = c(round(x_sq$p.value, 4), round(fe_test$p.value, 4))
+)
 comparison_table %>%
-  kbl(caption = "Table 9: Statistical signifiance tests for sex of respondent by serum IgE ")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 9: Statistical signifiance tests for sex of respondent by serum IgE ") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
-The Chi-square test is however not used if the expected counts/frequency (see table 10) < 5 andin such a case, we use the Fisher’s exact test. . However, in our example, the expected counts are all > 5 and so we can draw our conclusions about the gender vs serum IgE relationship using chi-square. 
+The Chi-square test is however not used if the expected counts/frequency (see table 10) < 5, and, in such a case, we use the Fisher’s exact test. However, in our example, the expected counts are all > 5 and so we can draw our conclusions about the gender vs serum IgE relationship using Chi-square. *Note that the fishers test is also interpreted the same as the Chi-square test in terms of statistical significance.*
 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 expected_freq <- data.frame((chisq.test(data_set1$gender, data_set1$`serum IgE`))$expected)
 expected_freq %>%
-  kbl(caption = "Table 10: Expected cell counts for sex of respondent by serum IgE ")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 10: Expected cell counts for sex of respondent by serum IgE ") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
-
-The results regarding the association between Accommodation and Sleep quality can be
+The results regarding the association between sex of the respondent and serum IgE can be
 represented as follows in a table with other variables as well.
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 final_table_outlook <- data.frame(
   Variable = c("Sex of respondent (Female)", "", ""),
-  `Positive serum IgE` = c(paste0(dt7[1, 1], " (", dt9[1, 1], ")", collapse = ""), NA, NA),
-  `Negative serum IgE` = c(paste0(dt7[1, 2], " (", dt9[1, 2], ")", collapse = ""), NA, NA),
-  P_value = c(round(x_sq$p.value, 3), NA, NA)
+  `Positive serum IgE` = c(paste0(dt7[1, 1], " (", dt9[1, 1], ")", collapse = ""), '', ''),
+  `Negative serum IgE` = c(paste0(dt7[1, 2], " (", dt9[1, 2], ")", collapse = ""), '', ''),
+  P_value = c(round(x_sq$p.value, 3), '', '')
 )
 final_table_outlook %>%
   kbl(caption = "Table 11: Results table") %>%
@@ -241,7 +228,9 @@ final_table_outlook %>%
 ```
 
 **Numerical variables**
+
 ***Numerical variables compared in different categories***
+
 If the numerical variable has a skew distribution results will be summarised and compared as below
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
 age_by_gender <- data_set1 %>%
@@ -253,7 +242,7 @@ age_by_gender <- data_set1 %>%
     `Upper Quartile` = round(quantile(age_months, .75), 2),
     Minimum = min(age_months),
     Maximum = max(age_months)
-  ) 
+  )
 
 age_by_gender %>%
   kbl(caption = "Table 12: Age in months by gender distribution") %>%
@@ -265,19 +254,19 @@ We noted in table 4 that age is not normally distributed and for this reason we 
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis', warning=F}
 compare_median <- kruskal.test(list(data_set1$gender, data_set1$age_months))
 
-comparison_table <- data.frame(Statistic = "Kruskal-Wallis Test", 
-                               `Chi-Square` = c(compare_median$statistic[[1]]), 
-                               DF = c(compare_median$parameter[[1]]), 
-                               `P value` = c(compare_median$p.value))
+comparison_table <- data.frame(
+  Statistic = "Kruskal-Wallis Test",
+  `Chi-Square` = c(compare_median$statistic[[1]]),
+  DF = c(compare_median$parameter[[1]]),
+  `P value` = c(compare_median$p.value)
+)
 comparison_table %>%
-  kbl(caption = "Table 13: Statistical signifiance tests for sex of respondent by age in months ")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 13: Statistical signifiance tests for sex of respondent by age in months ") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
-W_test <- wilcox.test(data_set1$age_months[data_set1$gender=='f'], data_set1$age_months[data_set1$gender=='m'], alternative = "two.sided", exact = FALSE, correct = FALSE, conf.int = T, conf.level = .95)
-
+W_test <- wilcox.test(data_set1$age_months[data_set1$gender == "f"], data_set1$age_months[data_set1$gender == "m"], alternative = "two.sided", exact = FALSE, correct = FALSE, conf.int = T, conf.level = .95)
 
 ```
-
 Computed was the p-value (P < 0.0001) from the Kruskal-Wallis test. Also, the 95% Confidence
 interval for the difference in median age between the two gender groups (Male = m and
 Female = f) was calculated as [`r round(W_test$conf.int[[1]],2)`; `r round(W_test$conf.int[[2]],2)`].
@@ -285,18 +274,18 @@ These results can also be represented with the results of other numerical variab
 as follows.
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis', warning=F}
 compare_median <- kruskal.test(list(data_set1$gender, data_set1$age_months))
-comparison_table <- data.frame(variable = c("Age in months"), 
-                               `Males(n=25)` = paste0(round(age_by_gender[[1,3]],2), ' (', round(age_by_gender[[1,4]],2),', ', round(age_by_gender[[1,5]],2), ')', collapse = ''), 
-                               `Females(n=14)` = paste0(round(age_by_gender[[2,3]],2), ' (', round(age_by_gender[[2,4]],2),', ', round(age_by_gender[[2,5]],2), ')', collapse = ''), 
-                               `95% CI for diff. in medians-wilcox` = paste0(round(W_test$conf.int[[1]],2), ', ', round(W_test$conf.int[[2]],2), collapse = ''),
-                               `P value-Kruskal` = c(round(compare_median$p.value, 2)))
+comparison_table <- data.frame(
+  variable = c("Age in months"),
+  `Males(n=25)` = paste0(round(age_by_gender[[1, 3]], 2), " (", round(age_by_gender[[1, 4]], 2), ", ", round(age_by_gender[[1, 5]], 2), ")", collapse = ""),
+  `Females(n=14)` = paste0(round(age_by_gender[[2, 3]], 2), " (", round(age_by_gender[[2, 4]], 2), ", ", round(age_by_gender[[2, 5]], 2), ")", collapse = ""),
+  `95% CI for diff. in medians-wilcox` = paste0(round(W_test$conf.int[[1]], 2), ", ", round(W_test$conf.int[[2]], 2), collapse = ""),
+  `P value-Kruskal` = c(round(compare_median$p.value, 2))
+)
 comparison_table %>%
-  kbl(caption = "Table 14: The relatioship between sex of respondent by age in months ")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 14: The relatioship between sex of respondent by age in months ") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
-
 ```
-
 If the numerical variable has a symmetric distribution, results will be summarised and
 compared as below.
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis'}
@@ -308,29 +297,31 @@ age_by_gender_2 <- data_set1 %>%
     `Std. deviation` = round(sd(age_months), 2),
     Minimum = min(age_months),
     Maximum = max(age_months)
-  ) 
+  )
 
 age_by_gender_2 %>%
   kbl(caption = "Table 15: Age in months by gender distribution, if Age in month was symmetric") %>%
   kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
-compare_vars <- var.test(data_set1$age_months~as.numeric(as.factor(data_set1$gender)), alternative = "two.sided", var.equal = TRUE)
+compare_vars <- var.test(data_set1$age_months ~ as.numeric(as.factor(data_set1$gender)), alternative = "two.sided", var.equal = TRUE)
 
 ```
 
-Since there is no evidence (F Value = `r round(compare_vars$statistic[[1]], 2)`, p-value = `r round(compare_vars$p.value, 4)`) to suggest that the variances between the two genders were different, the pooled variance estimate method was used. The p-value (from the two sample t-test) and 95% confidence interval was calculated. These results can also be represented with other numerical variables in a table as follows.
+Using the pooled variance estimate method, the variances between the two genders were different (F Value = `r round(compare_vars$statistic[[1]], 2)`, p-value = `r round(compare_vars$p.value, 5)`). A significant p-value for the F-test here shows that respondents age in months is, as expected, nonzero. The p-value (from the two sample t-test) and 95% confidence interval was calculated. The p-value from the t-test was not significant, in contradiction with the F-test p-value. which implies while the age in months is nonzero as per f-test, the mean age in months between both sexes is the same (note that the age in months of Males overlaps that of the Females). These results can also be represented with other numerical variables in a table as follows.
+
 ```{r, message = FALSE, cache = TRUE, echo = FALSE, results='asis', warning=F}
-compare_means <- t.test(data_set1$age_months~as.numeric(as.factor(data_set1$gender)))
-comparison_table <- data.frame(variable = c("Age in months"), 
-                               `Males(n=25)` = paste0(round(age_by_gender_2[[1,3]],2), ' (', round(age_by_gender_2[[1,4]],2),', ', round(age_by_gender_2[[1,5]], 2), ')', collapse = ''), 
-                               `Females(n=14)` = paste0(round(age_by_gender_2[[2,3]],2), ' (', round(age_by_gender_2[[2,4]], 2),', ', round(age_by_gender_2[[2,5]],2), ')', collapse = ''), 
-                               `95% CI for diff. in means` = paste0(round(compare_means$conf.int[[1]],2), ', ', round(compare_means$conf.int[[2]],2), collapse = ''),
-                               `P value` = c(round(compare_means$p.value, 4)))
+compare_means <- t.test(data_set1$age_months ~ as.numeric(as.factor(data_set1$gender)))
+comparison_table <- data.frame(
+  variable = c("Age in months"),
+  `Males(n=25)` = paste0(round(age_by_gender_2[[1, 3]], 2), " (", round(age_by_gender_2[[1, 4]], 2), ", ", round(age_by_gender_2[[1, 5]], 2), ")", collapse = ""),
+  `Females(n=14)` = paste0(round(age_by_gender_2[[2, 3]], 2), " (", round(age_by_gender_2[[2, 4]], 2), ", ", round(age_by_gender_2[[2, 5]], 2), ")", collapse = ""),
+  `95% CI for diff. in means` = paste0(round(compare_means$conf.int[[1]], 2), ", ", round(compare_means$conf.int[[2]], 2), collapse = ""),
+  `P value` = c(round(compare_means$p.value, 4))
+)
 comparison_table %>%
-  kbl(caption = "Table 16: The relationship sex of respondent by age in months (for symmetric age) ")%>%
-  kable_paper('hover', full_width = F) %>%
+  kbl(caption = "Table 16: The relationship sex of respondent by age in months (for symmetric age) ") %>%
+  kable_paper("hover", full_width = F) %>%
   kable_classic(full_width = F, html_font = "Arial")
 
 ```
-
